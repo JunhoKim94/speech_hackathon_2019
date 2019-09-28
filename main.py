@@ -16,6 +16,7 @@ limitations under the License.
 
 #-*- coding: utf-8 -*-
 
+import numpy as np
 import os
 import sys
 import time
@@ -306,7 +307,7 @@ def main():
     parser.add_argument('--use_attention', action='store_true', help='use attention between encoder-decoder (default: False)')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size in training (default: 32)')
     parser.add_argument('--workers', type=int, default=4, help='number of workers in dataset loader (default: 4)')
-    parser.add_argument('--max_epochs', type=int, default=10, help='number of max epochs in training (default: 10)')
+    parser.add_argument('--max_epochs', type=int, default=20, help='number of max epochs in training (default: 10)')
     parser.add_argument('--lr', type=float, default=1e-04, help='learning rate (default: 0.0001)')
     parser.add_argument('--teacher_forcing', type=float, default=0.5, help='teacher forcing ratio in decoder (default: 0.5)')
     parser.add_argument('--max_len', type=int, default=80, help='maximum characters of sentence (default: 80)')
@@ -331,7 +332,10 @@ def main():
     device = torch.device('cuda' if args.cuda else 'cpu')
 
     # N_FFT: defined in loader.py
-    feature_size = N_FFT / 2 + 1
+    #feature_size = N_FFT / 2 + 1
+    #feature_size = 40
+    feature_size = 128
+    #Mel function이면 다르게 해야할듯?
 
     enc = EncoderRNN(feature_size, args.hidden_size,
                      input_dropout_p=args.dropout, dropout_p=args.dropout,
@@ -350,7 +354,7 @@ def main():
 
     model = nn.DataParallel(model).to(device)
 
-    optimizer = optim.Adam(model.module.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.module.parameters(), lr=args.lr, weight_decay = 1e-06)
     criterion = nn.CrossEntropyLoss(reduction='sum', ignore_index=PAD_token).to(device)
 
     bind_model(model, optimizer)
@@ -361,6 +365,9 @@ def main():
     if args.mode != "train":
         return
 
+    nsml.load(checkpoint='best', session='team228/sr-hack-2019-dataset/140')
+    nsml.save('best')
+
     data_list = os.path.join(DATASET_PATH, 'train_data', 'data_list.csv')
     wav_paths = list()
     script_paths = list()
@@ -368,7 +375,6 @@ def main():
     with open(data_list, 'r') as f:
         for line in f:
             # line: "aaa.wav,aaa.label"
-
             wav_path, script_path = line.strip().split(',')
             wav_paths.append(os.path.join(DATASET_PATH, 'train_data', wav_path))
             script_paths.append(os.path.join(DATASET_PATH, 'train_data', script_path))

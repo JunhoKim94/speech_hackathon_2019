@@ -19,6 +19,7 @@ limitations under the License.
 import sys
 import math
 import torch.nn as nn
+from torchvision import models
 
 from .baseRNN import BaseRNN
 
@@ -65,6 +66,7 @@ class EncoderRNN(BaseRNN):
 
         self.variable_lengths = variable_lengths
         
+        #vgg = models.vgg16_bn()
 
         """
         Copied from https://github.com/SeanNaren/deepspeech.pytorch/blob/master/model.py
@@ -86,6 +88,8 @@ class EncoderRNN(BaseRNN):
 
         self.rnn = self.rnn_cell(feature_size, hidden_size, n_layers,
                                  batch_first=True, bidirectional=bidirectional, dropout=dropout_p)
+                    
+
 
     def forward(self, input_var, input_lengths=None):
         """

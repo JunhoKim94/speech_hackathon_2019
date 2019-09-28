@@ -26,6 +26,8 @@ import random
 import threading
 import logging
 from torch.utils.data import Dataset, DataLoader
+import librosa
+import numpy as np
 
 logger = logging.getLogger('root')
 FORMAT = "[%(asctime)s %(filename)s:%(lineno)s - %(funcName)s()] %(message)s"
@@ -45,6 +47,21 @@ def load_targets(path):
             target_dict[key] = target
 
 def get_spectrogram_feature(filepath):
+    # mel-spectrogram
+    #y, sr = librosa.load(filepath, sr = 16000)
+    (rate, width, sig) = wavio.readwav(filepath)
+    sig = sig.ravel()
+    sig = sig.astype(np.float32)
+
+    input_stride = int(round(SAMPLE_RATE * 0.01))
+    mel = librosa.feature.melspectrogram(y = sig, n_mels = 128, n_fft = N_FFT, hop_length = input_stride)
+    
+    feat = torch.FloatTensor(mel)
+    feat = torch.FloatTensor(feat).transpose(0, 1)
+    return feat
+
+'''
+def get_spectrogram_feature(filepath):
     (rate, width, sig) = wavio.readwav(filepath)
     sig = sig.ravel()
 
@@ -63,7 +80,29 @@ def get_spectrogram_feature(filepath):
     feat = torch.FloatTensor(feat).transpose(0, 1)
 
     return feat
+'''
+'''
+def get_spectrogram_feature(filepath):
 
+    # mel-spectrogram
+    #y, sr = librosa.load(filepath, sr = SAMPLE_RATE)
+    (rate, width, sig) = wavio.readwav(filepath)
+    sig = sig.ravel()
+    sig = sig.astype(np.float32)
+    #sr means sampling rate
+    #input_nfft = int(round(sr * frame_length))
+    input_stride = int(round(SAMPLE_RATE * 0.01))
+
+    mfcc = librosa.feature.mfcc(y = sig, sr = SAMPLE_RATE , n_fft = N_FFT, n_mels = 128, hop_length = input_stride)
+    mfcc_delta = librosa.feature.delta(mfcc)
+
+    S = np.vstack([mfcc,mfcc_delta])
+
+    feature = torch.FloatTensor(S)
+    feature = torch.FloatTensor(feature).transpose(0,1)
+
+    return feature
+'''
 def get_script(filepath, bos_id, eos_id):
     key = filepath.split('/')[-1].split('.')[0]
     script = target_dict[key]
@@ -90,6 +129,7 @@ class BaseDataset(Dataset):
 
     def getitem(self, idx):
         feat = get_spectrogram_feature(self.wav_paths[idx])
+        #feat = MFCC(self.wav_paths[idx])
         script = get_script(self.script_paths[idx], self.bos_id, self.eos_id)
         return feat, script
 
@@ -103,8 +143,8 @@ def _collate_fn(batch):
     seq_lengths = [len(s[0]) for s in batch]
     target_lengths = [len(s[1]) for s in batch]
 
-    max_seq_sample = max(batch, key=seq_length_)[0]
-    max_target_sample = max(batch, key=target_length_)[1]
+    max_seq_sample = max(batch, key=seq_length_)[0]#batch안의 seq중 가장 긴 놈 추출
+    max_target_sample = max(batch, key=target_length_)[1]# batch안의 target중 가장 긴 놈 추출
 
     max_seq_size = max_seq_sample.size(0)
     max_target_size = len(max_target_sample)
@@ -189,4 +229,3 @@ class MultiLoader():
     def join(self):
         for i in range(self.worker_size):
             self.loader[i].join()
-
