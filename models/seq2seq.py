@@ -22,6 +22,7 @@ import sys
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class Seq2seq(nn.Module):
     """ Standard sequence-to-sequence architecture with configurable encoder
     and decoder.

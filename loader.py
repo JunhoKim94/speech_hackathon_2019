@@ -54,7 +54,7 @@ def get_spectrogram_feature(filepath):
     sig = sig.astype(np.float32)
 
     input_stride = int(round(SAMPLE_RATE * 0.01))
-    mel = librosa.feature.melspectrogram(y = sig, n_mels = 128, n_fft = N_FFT, hop_length = input_stride)
+    mel = librosa.feature.melspectrogram(y = sig, n_mels = 40, n_fft = N_FFT, hop_length = input_stride)
     
     feat = torch.FloatTensor(mel)
     feat = torch.FloatTensor(feat).transpose(0, 1)

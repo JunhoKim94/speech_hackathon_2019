@@ -76,7 +76,7 @@ class Attention(nn.Module):
         # (batch, out_len, dim) * (batch, in_len, dim) -> (batch, out_len, in_len)
         attn = torch.bmm(output, context.transpose(1, 2))
         if self.mask is not None:
-            attn.data.masked_fill_(self.mask, -float('inf'))
+            attn.data.masked_fill_(self.mask, - float('inf'))
         attn = F.softmax(attn.view(-1, input_size), dim=1).view(batch_size, -1, input_size)
 
         # (batch, out_len, in_len) * (batch, in_len, dim) -> (batch, out_len, dim)
