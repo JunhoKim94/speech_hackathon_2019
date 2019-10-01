@@ -46,7 +46,7 @@ def load_targets(path):
             key, target = line.strip().split(',')
             target_dict[key] = target
 
-def get_spectrogram_feature(filepath):
+'''def get_spectrogram_feature(filepath):
     # mel-spectrogram
     #y, sr = librosa.load(filepath, sr = 16000)
     (rate, width, sig) = wavio.readwav(filepath)
@@ -54,11 +54,15 @@ def get_spectrogram_feature(filepath):
     sig = sig.astype(np.float32)
 
     input_stride = int(round(SAMPLE_RATE * 0.01))
-    mel = librosa.feature.melspectrogram(y = sig, n_mels = 40, n_fft = N_FFT, hop_length = input_stride)
+    S = librosa.feature.melspectrogram(y = sig, n_mels = 20, n_fft = N_FFT, hop_length = input_stride)
+    mfcc = librosa.feature.mfcc(y = sig, sr = SAMPLE_RATE, n_mfcc = 20, n_fft = N_FFT, hop_length = input_stride)
+
+    feature = np.vstack([S,mfcc])
+    feature = torch.FloatTensor(feature)
     
-    feat = torch.FloatTensor(mel)
-    feat = torch.FloatTensor(feat).transpose(0, 1)
+    feat = torch.FloatTensor(feature).transpose(0, 1)
     return feat
+'''
 
 '''
 def get_spectrogram_feature(filepath):
@@ -81,7 +85,7 @@ def get_spectrogram_feature(filepath):
 
     return feat
 '''
-'''
+
 def get_spectrogram_feature(filepath):
 
     # mel-spectrogram
@@ -93,16 +97,22 @@ def get_spectrogram_feature(filepath):
     #input_nfft = int(round(sr * frame_length))
     input_stride = int(round(SAMPLE_RATE * 0.01))
 
-    mfcc = librosa.feature.mfcc(y = sig, sr = SAMPLE_RATE , n_fft = N_FFT, n_mels = 128, hop_length = input_stride)
+
+    #mel_scale = librosa.feature.melspectrogram(y = sig, sr = SAMPLE_RATE, n_fft = N_FFT, hop_length= input_stride, n_mels = 15)
+    S = librosa.feature.melspectrogram(y = sig, sr = SAMPLE_RATE, n_mels = 15, n_fft = N_FFT, hop_length = input_stride)
+    mfcc = librosa.feature.mfcc(y = sig, sr = SAMPLE_RATE , n_fft = N_FFT, n_mels = 26, hop_length = input_stride, n_mfcc = 15)
+    mfcc[0] = librosa.feature.rmse(y = sig, hop_length = input_stride , frame_length = int(0.03 * SAMPLE_RATE))
     mfcc_delta = librosa.feature.delta(mfcc)
+    mfcc_delta_delta = librosa.feature.delta(mfcc, order = 2)
 
-    S = np.vstack([mfcc,mfcc_delta])
+    feature = np.vstack([S,mfcc,mfcc_delta,mfcc_delta_delta])
+    feature = (feature - feature.mean(axis = 1)[:,np.newaxis]) / (feature.std(axis = 1) + 1e-16)[:,np.newaxis]
 
-    feature = torch.FloatTensor(S)
+    feature = torch.FloatTensor(feature)
     feature = torch.FloatTensor(feature).transpose(0,1)
 
     return feature
-'''
+
 def get_script(filepath, bos_id, eos_id):
     key = filepath.split('/')[-1].split('.')[0]
     script = target_dict[key]

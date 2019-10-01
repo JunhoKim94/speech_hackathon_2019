@@ -307,7 +307,7 @@ def main():
     parser.add_argument('--use_attention', action='store_true', help='use attention between encoder-decoder (default: False)')
     parser.add_argument('--batch_size', type=int, default=32, help='batch size in training (default: 32)')
     parser.add_argument('--workers', type=int, default=4, help='number of workers in dataset loader (default: 4)')
-    parser.add_argument('--max_epochs', type=int, default=30, help='number of max epochs in training (default: 10)')
+    parser.add_argument('--max_epochs', type=int, default=50, help='number of max epochs in training (default: 10)')
     parser.add_argument('--lr', type=float, default=1e-04, help='learning rate (default: 0.0001)')
     parser.add_argument('--teacher_forcing', type=float, default=0.5, help='teacher forcing ratio in decoder (default: 0.5)')
     parser.add_argument('--max_len', type=int, default=80, help='maximum characters of sentence (default: 80)')
@@ -334,7 +334,7 @@ def main():
     # N_FFT: defined in loader.py
     #feature_size = N_FFT / 2 + 1
     #feature_size = 40
-    feature_size = 40
+    feature_size = 60
     #Mel function이면 다르게 해야할듯?
 
     enc = EncoderRNN(feature_size, args.hidden_size,
@@ -365,11 +365,10 @@ def main():
     if args.mode != "train":
         return
 
-    '''
-    nsml.load(checkpoint='best', session='team228/sr-hack-2019-dataset/222')
-    nsml.save('best')
-    '''
 
+    nsml.load(checkpoint='best', session='team228/sr-hack-2019-dataset/414')
+    nsml.save('best')
+    
     data_list = os.path.join(DATASET_PATH, 'train_data', 'data_list.csv')
     wav_paths = list()
     script_paths = list()

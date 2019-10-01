@@ -103,7 +103,16 @@ class DecoderRNN(BaseRNN):
         if use_attention:
             self.attention = Attention(self.hidden_size)
 
+             
+        '''self.join  = nn.Sequential(
+            nn.Linear(2 * self.hidden_size ,self.hidden_size),
+            nn.Hardtanh(inplace = True),
+            nn.Linear(self.hidden_size,self.hidden_size),
+            nn.Hardtanh(inplace = True),
+        )'''
         self.out = nn.Linear(self.hidden_size, self.output_size)
+        
+        
 
     def forward_step(self, input_var, hidden, encoder_outputs, function):
         batch_size = input_var.size(0)
@@ -119,6 +128,12 @@ class DecoderRNN(BaseRNN):
         attn = None
         if self.use_attention:
             output, attn = self.attention(output, encoder_outputs)
+        #add Joint nn
+
+        #print(hidden_new.shape,hidden.shape)
+        '''hidden_new = torch.cat([hidden_new,hidden], dim = len(hidden.size())- 1 )
+        hidden_new = self.join(hidden_new.contiguous().view(-1,self.hidden_size * 2))
+        hidden_new = hidden_new.view(hidden.size(0), hidden.size(1), hidden.size(2))'''
 
         predicted_softmax = function(self.out(output.contiguous().view(-1, self.hidden_size)), dim=1).view(batch_size, output_size, -1)
         return predicted_softmax, hidden, attn
