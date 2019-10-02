@@ -162,12 +162,12 @@ def _collate_fn(batch):
     feat_size = max_seq_sample.size(1)
     batch_size = len(batch)
 
-    #seqs = torch.zeros(batch_size, max_seq_size, feat_size)
-    max_size = 4000
-    max_size2 = 80
-    seqs = torch.zeros(batch_size, max_size, feat_size)
-    #targets = torch.zeros(batch_size, max_target_size).to(torch.long)
-    targets = torch.zeros(batch_size,max_size2).to(torch.long)
+    seqs = torch.zeros(batch_size, max_seq_size, feat_size)
+    #max_size = 4000
+    #max_size2 = 80
+    #seqs = torch.zeros(batch_size, max_size, feat_size)
+    targets = torch.zeros(batch_size, max_target_size).to(torch.long)
+    #targets = torch.zeros(batch_size,max_size2).to(torch.long)
     targets.fill_(PAD)
 
     for x in range(batch_size):

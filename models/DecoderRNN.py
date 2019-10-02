@@ -110,11 +110,9 @@ class DecoderRNN(BaseRNN):
             nn.Linear(self.hidden_size,self.hidden_size),
             nn.Hardtanh(inplace = True),
         )'''
+
         self.out = nn.Linear(self.hidden_size, self.output_size)
-        self.joint = nn.Sequential(
-            nn.Linear(4000 * self.hidden_size,self.hidden_size)
-            ,nn.Linear(self.hidden_size,self.output_size)
-            )
+        self.joint = nn.Linear(self.hidden_size,self.output_size)
         
         
 
@@ -141,15 +139,17 @@ class DecoderRNN(BaseRNN):
         hidden_new = self.join(hidden_new.contiguous().view(-1,self.hidden_size * 2))
         hidden_new = hidden_new.view(hidden.size(0), hidden.size(1), hidden.size(2))
         '''
+        print(encoder_outputs.shape,self.hidden_size)
+        decoder_joint = function(self.out(output.contiguous().view(-1, self.hidden_size)),dim = 1).view(batch_size, output_size, -1)
+        print(decoder_joint.shape)
+        encoder_joint = function(self.joint(encoder_outputs.contiguous().view(-1,self.hidden_size)),dim = 1).view(batch_size, output_size,-1)
 
-        encoder_joint = self.joint(encoder_outputs.contiguous().view(batch_size,-1))
-        decoder_joint = self.out(output.contiguous().view(-1, self.hidden_size))
-        #print(encoder_joint.shape,decoder_joint.shape)
-
+        
+        print(encoder_joint.shape,decoder_joint.shape)
 
         weight = 0.3
         
-        predicted_softmax = function(weight * encoder_joint + (1 - weight) * decoder_joint, dim=1).view(batch_size, output_size, -1)
+        predicted_softmax = weight * encoder_joint + (1 - weight) * decoder_joint
         return predicted_softmax, hidden, attn
 
     def forward(self, inputs=None, encoder_hidden=None, encoder_outputs=None,
