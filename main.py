@@ -334,7 +334,7 @@ def main():
     # N_FFT: defined in loader.py
     #feature_size = N_FFT / 2 + 1
     #feature_size = 40
-    feature_size = 60
+    feature_size = 45
     #Mel function이면 다르게 해야할듯?
 
     enc = EncoderRNN(feature_size, args.hidden_size,
@@ -365,9 +365,10 @@ def main():
     if args.mode != "train":
         return
 
-
+    '''
     nsml.load(checkpoint='best', session='team228/sr-hack-2019-dataset/414')
     nsml.save('best')
+    '''
     
     data_list = os.path.join(DATASET_PATH, 'train_data', 'data_list.csv')
     wav_paths = list()

@@ -99,13 +99,13 @@ def get_spectrogram_feature(filepath):
 
 
     #mel_scale = librosa.feature.melspectrogram(y = sig, sr = SAMPLE_RATE, n_fft = N_FFT, hop_length= input_stride, n_mels = 15)
-    S = librosa.feature.melspectrogram(y = sig, sr = SAMPLE_RATE, n_mels = 15, n_fft = N_FFT, hop_length = input_stride)
+    #S = librosa.feature.melspectrogram(y = sig, sr = SAMPLE_RATE, n_mels = 15, n_fft = N_FFT, hop_length = input_stride)
     mfcc = librosa.feature.mfcc(y = sig, sr = SAMPLE_RATE , n_fft = N_FFT, n_mels = 26, hop_length = input_stride, n_mfcc = 15)
     mfcc[0] = librosa.feature.rmse(y = sig, hop_length = input_stride , frame_length = int(0.03 * SAMPLE_RATE))
     mfcc_delta = librosa.feature.delta(mfcc)
     mfcc_delta_delta = librosa.feature.delta(mfcc, order = 2)
 
-    feature = np.vstack([S,mfcc,mfcc_delta,mfcc_delta_delta])
+    feature = np.vstack([mfcc,mfcc_delta,mfcc_delta_delta])
     feature = (feature - feature.mean(axis = 1)[:,np.newaxis]) / (feature.std(axis = 1) + 1e-16)[:,np.newaxis]
 
     feature = torch.FloatTensor(feature)
@@ -162,9 +162,12 @@ def _collate_fn(batch):
     feat_size = max_seq_sample.size(1)
     batch_size = len(batch)
 
-    seqs = torch.zeros(batch_size, max_seq_size, feat_size)
-
-    targets = torch.zeros(batch_size, max_target_size).to(torch.long)
+    #seqs = torch.zeros(batch_size, max_seq_size, feat_size)
+    max_size = 4000
+    max_size2 = 80
+    seqs = torch.zeros(batch_size, max_size, feat_size)
+    #targets = torch.zeros(batch_size, max_target_size).to(torch.long)
+    targets = torch.zeros(batch_size,max_size2).to(torch.long)
     targets.fill_(PAD)
 
     for x in range(batch_size):
